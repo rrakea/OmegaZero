@@ -26,6 +26,11 @@ fn potential_moves(s: &state::State) -> Vec<(u8, u8)> {
             _ => {}
         }
     }
+    // Double Pawn Moves
+    // En passant
+    // Casteling
+    let castle = s.can_castle();
+
     moves
 }
 
@@ -34,13 +39,40 @@ fn in_check() -> bool {
 }
 fn can_move(s: &state::State, offset: &Vec<i8>, pos: u8, repeat: bool) -> Vec<(u8, u8)> {
     let mut moves: Vec<(u8, u8)> = Vec::new();
+    let mut iter: u8;
+    let active = s.active();
+
     for o in offset {
-        let new_pos: i32 = pos as i32 + *o as i32;
-        if new_pos < 0 || new_pos > 63 {
-            break;
+        if repeat {
+            iter = 7; // A move can max be 7 squares long
+        } else {
+            iter = 1;
         }
-        // Wrapping is net yet accounte for
-        moves.push((pos, new_pos as u8));
+        let mut new_pos = pos;
+        let mut prev_mod: u8 = pos % 8;
+        while iter != 0 {
+            let p: i32 = new_pos as i32 + *o as i32;
+            if p < 0 || p > 63 {
+                break;
+            } else {
+                new_pos = p as u8;
+            }
+
+            let new_mod: u8 = new_pos % 8;
+            if i32::abs((new_mod - prev_mod) as i32) > 2 {
+                // >2 specifically only for the knight
+                break; // A wrap has occured
+            }
+            prev_mod = new_pos % 8;
+            if (s.board[new_pos as usize] ^ active) >= 0 {
+                // Check if the signs are the same (XOR)
+                moves.push((pos, new_pos));
+                break;
+            }
+            // Wrapping is net yet accounte for
+            moves.push((pos, new_pos));
+            iter -= 1;
+        }
     }
     moves
 }

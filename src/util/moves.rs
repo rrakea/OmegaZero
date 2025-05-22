@@ -15,7 +15,7 @@ fn potential_moves(s: &state::State) -> Vec<(u8, u8)> {
     let king_offsets = vec![1, -1, 8, -8, 7, -7, 9, -9];
 
     for (i, p) in s.board.iter().enumerate() {
-        match  active * *p {
+        match active * *p {
             0 => {}
             state::PAWN => moves.append(&mut can_move(s, &pawn_offsets, i as u8, false)),
             state::KNIGHT => moves.append(&mut can_move(s, &knight_offsets, i as u8, false)),
@@ -23,15 +23,7 @@ fn potential_moves(s: &state::State) -> Vec<(u8, u8)> {
             state::ROOK => moves.append(&mut can_move(s, &rook_offsets, i as u8, true)),
             state::QUEEN => moves.append(&mut can_move(s, &queen_offsets, i as u8, true)),
             state::KING => moves.append(&mut can_move(s, &king_offsets, i as u8, false)),
-
-            state::BPAWN => moves.append(&mut can_move(s, &bpawn_offsets, i as u8, false)),
-            state::BKNIGHT => moves.append(&mut can_move(s, &knight_offsets, i as u8, false)),
-            state::BBISHOP => moves.append(&mut can_move(s, &bishop_offsets, i as u8, true)),
-            state::BROOK => moves.append(&mut can_move(s, &rook_offsets, i as u8, true)),
-            state::BQUEEN => moves.append(&mut can_move(s, &queen_offsets, i as u8, true)),
-            state::BKING => moves.append(&mut can_move(s, &king_offsets, i as u8, false)),
-
-            _ => panic!("Wierd value found in board representation: {}", p),
+            _ => {}
         }
     }
     moves
@@ -51,8 +43,4 @@ fn can_move(s: &state::State, offset: &Vec<i8>, pos: u8, repeat: bool) -> Vec<(u
         moves.push((pos, new_pos as u8));
     }
     moves
-}
-
-fn negate_board(b [i8; 64]) -> {
-    
 }

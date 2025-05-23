@@ -12,6 +12,7 @@ pub const BROOK: i8 = -4;
 pub const BQUEEN: i8 = -5;
 pub const BKING: i8 = -6;
 
+#[derive(Clone)]
 pub struct State {
     pub board: [i8; 64],
     pub data: u8,

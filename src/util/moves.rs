@@ -23,9 +23,6 @@ pub fn moves(s: &state::State) -> Vec<(u8, u8)> {
             _ => {}
         }
     }
-    // Double Pawn Moves
-    // En passant
-    // Pawn captures
 
     let castle = s.can_castle();
     let kingpos: u8 = if active == 1 { 4 } else { 60 };
@@ -153,5 +150,6 @@ fn can_pawn_move(s: &state::State, pos: u8) -> Vec<(u8, u8)> {
 
 fn square_attacked(s: &state::State, square: u8, color: i8) -> bool {
     // The color of the person that is/isnt attacking the square
-    true
+    for (i, p) in s.board.iter().enumerate() {}
+    false
 }

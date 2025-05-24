@@ -95,13 +95,13 @@ pub fn fen_to_board(fen: &str) -> state::State {
         data += 1
     }
     if w_queenside {
-        data += 4
+        data += 2
     }
     if b_kingside {
-        data += 8
+        data += 4
     }
     if b_queenside {
-        data += 16
+        data += 8
     }
 
     println!("{} {}", en_passant.0, en_passant.1);

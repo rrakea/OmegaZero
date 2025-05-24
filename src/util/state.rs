@@ -12,7 +12,7 @@ pub const BROOK: i8 = -4;
 pub const BQUEEN: i8 = -5;
 pub const BKING: i8 = -6;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct State {
     pub board: [i8; 64],
     pub data: u8,
@@ -37,9 +37,9 @@ pub struct State {
 impl State {
     pub fn active(&self) -> i8 {
         if self.data & 128 != 0 {
-            -1
-        } else {
             1
+        } else {
+            -1
         }
     }
 

@@ -7,7 +7,15 @@ const FEN: &str = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1."
 
 fn main() {
     let start = move_gen::fen::fen_to_board(move_gen::fen::START);
-    cli::draw::draw(&start, 0.0, 0.0, 8);
+    cli::draw::draw(&start, 0.0, 0.0, 0, (0, 0));
+    let mut pos = start;
+    for i in 0..7 {
+        let res = tree_search::search::get_best_moves(&pos, 1);
+        let eval = res.0;
+        let top_move = res.1;
+        pos = move_gen::outcome::outcome(&pos, top_move);
+        cli::draw::draw(&pos, eval, 1.0, res.2 as u32, top_move);
+    }
     /*
     for m in moves {
         println!("{}", util::draw::prittify_move(&start, m));
@@ -15,9 +23,11 @@ fn main() {
     }
     println!("{}", outcomes.len());
     */
+    /*
     for i in (1..8) {
         println!("{}", num_positions(&start, i));
     }
+    */
 }
 
 fn num_positions(p: &move_gen::state::State, depth: u8) -> u64 {

@@ -3,18 +3,19 @@ pub mod eval;
 pub mod move_gen;
 pub mod tree_search;
 
-const FEN: &str = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1.";
+const FEN: &str = "3rQr1k/p1p3pp/1b6/8/1P6/2q2N2/5PPP/R3R1K1 w - - 2 26";
 
 fn main() {
-    let start = move_gen::fen::fen_to_board(move_gen::fen::START);
+    print!("{esc}[2J{esc}[1;1H", esc = 27 as char); // Clear Screen
+    let start = move_gen::fen::fen_to_board(FEN);
     cli::draw::draw(&start, 0.0, 0.0, 0, (0, 0));
     let mut pos = start;
-    for i in 0..7 {
-        let res = tree_search::search::get_best_moves(&pos, 1);
+    for i in 1..8 {
+        let res = tree_search::search::get_best_moves(&pos, 15);
         let eval = res.0;
         let top_move = res.1;
         pos = move_gen::outcome::outcome(&pos, top_move);
-        cli::draw::draw(&pos, eval, 1.0, res.2 as u32, top_move);
+        cli::draw::draw(&pos, eval, 15.0, res.2 as u32, top_move);
     }
     /*
     for m in moves {

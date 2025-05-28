@@ -1,4 +1,5 @@
 use super::state;
+use crate::mv::mv;
 
 // Initilaizing the arrays sp that every function call doesnt have to remake them
 static bishop_offsets: [i8; 4] = [7, 9, -7, -9];
@@ -7,8 +8,8 @@ static queen_offsets: [i8; 8] = [1, -1, 8, -8, 7, -7, 9, -9];
 static king_offsets: [i8; 8] = [1, -1, 8, -8, 7, -7, 9, -9];
 static knight_offsets: [i8; 8] = [-10, 6, 15, 17, 10, -6, -15, -17];
 
-pub fn moves(s: &state::State) -> Vec<(u8, u8)> {
-    let mut moves: Vec<(u8, u8)> = Vec::new();
+pub fn moves(s: &state::State) -> Vec<u16> {
+    let mut moves: Vec<u16> = Vec::new();
     let active = s.active();
 
     for (i, p) in s.board.iter().enumerate() {
@@ -24,7 +25,7 @@ pub fn moves(s: &state::State) -> Vec<(u8, u8)> {
         }
     }
 
-    let castle = s.can_castle();
+    let castle = s.can_castle(active);
     let kingpos: u8 = if active == 1 { 4 } else { 60 };
     let op = -active;
 
@@ -36,7 +37,7 @@ pub fn moves(s: &state::State) -> Vec<(u8, u8)> {
         && square_attacked(s, kingpos + 1, op)
         && square_attacked(s, kingpos + 2, op)
     {
-        moves.push((kingpos, kingpos + 2));
+        moves.push(mv::gen_mv(kingpos, kingpos + 2, false, false, false));
     }
 
     if castle.1
@@ -47,14 +48,14 @@ pub fn moves(s: &state::State) -> Vec<(u8, u8)> {
         && square_attacked(s, kingpos - 1, op)
         && square_attacked(s, kingpos - 2, op)
     {
-        moves.push((kingpos, kingpos - 2));
+        moves.push(mv::gen_mv(kingpos, kingpos - 2, false, false, false))
     }
 
     moves
 }
 
-fn can_move(s: &state::State, offset: &[i8], pos: u8, repeat: bool) -> Vec<(u8, u8)> {
-    let mut moves: Vec<(u8, u8)> = Vec::new();
+fn can_move(s: &state::State, offset: &[i8], pos: u8, repeat: bool) -> Vec<u16> {
+    let mut moves: Vec<u16> = Vec::new();
     let mut iter: u8;
     let active = s.active();
 
@@ -105,7 +106,7 @@ fn can_move(s: &state::State, offset: &[i8], pos: u8, repeat: bool) -> Vec<(u8, 
     moves
 }
 
-fn can_knight_move(s: &state::State, pos: u8) -> Vec<(u8, u8)> {
+fn can_knight_move(s: &state::State, pos: u8) -> Vec<u16> {
     let mut moves: Vec<(u8, u8)> = Vec::new();
     for o in knight_offsets {
         let new_pos = pos as i16 + o as i16;
@@ -126,7 +127,7 @@ fn can_knight_move(s: &state::State, pos: u8) -> Vec<(u8, u8)> {
     moves
 }
 
-fn can_pawn_move(s: &state::State, pos: u8) -> Vec<(u8, u8)> {
+fn can_pawn_move(s: &state::State, pos: u8) -> Vec<u16> {
     let mut moves: Vec<(u8, u8)> = Vec::new();
     let active = s.active();
     // a) Square ahead is free

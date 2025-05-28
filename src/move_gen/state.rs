@@ -43,12 +43,11 @@ impl State {
         }
     }
 
-    pub fn can_castle(&self) -> (bool, bool) {
+    pub fn can_castle(&self, active: i8) -> (bool, bool) {
         let w_kingside = &self.data & 1;
         let w_queenside = &self.data & 2;
         let b_kingside = &self.data & 4;
         let b_queenside = &self.data & 8;
-        let active = self.active();
 
         if active == 1 {
             (w_kingside > 0, w_queenside > 0)

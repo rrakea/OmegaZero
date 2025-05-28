@@ -1,5 +1,6 @@
 use super::state;
 use core::panic;
+use collections::HashMap;
 
 pub const START: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 

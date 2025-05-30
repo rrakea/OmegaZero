@@ -1,5 +1,6 @@
 use super::state;
 use crate::mv::mv;
+use std::iter;
 
 // Initilaizing the arrays sp that every function call doesnt have to remake them
 static bishop_offsets: [i8; 4] = [7, 9, -7, -9];
@@ -7,6 +8,15 @@ static rook_offsets: [i8; 4] = [1, -1, 8, -8];
 static queen_offsets: [i8; 8] = [1, -1, 8, -8, 7, -7, 9, -9];
 static king_offsets: [i8; 8] = [1, -1, 8, -8, 7, -7, 9, -9];
 static knight_offsets: [i8; 8] = [-10, 6, 15, 17, 10, -6, -15, -17];
+
+pub fn mv_gen(s: &state::State, best: u64, second: u64) -> impl Iterator<Item = u64> {
+    iter::from_fn(move || {
+        best += 1;
+        second -= 1;
+        Some(vec![best, second])
+    })
+    .flat_map(|batch| batch.into_iter())
+}
 
 pub fn moves(s: &state::State) -> Vec<u16> {
     let mut moves: Vec<u16> = Vec::new();

@@ -23,7 +23,7 @@ fn search(s: &state::State, time: u64, key: u64) -> (f64, u16, u8, u128) {
         if START.get().unwrap().elapsed() >= *ALLOC_TIME.get().unwrap() {
             break;
         }
-        res = negamax(s, depth, f64::MIN, f64::MAX, 0, key);
+        res = negascout(s, depth, f64::MIN, f64::MAX, 0, key);
         depth += 1;
     }
 
@@ -36,7 +36,7 @@ fn search(s: &state::State, time: u64, key: u64) -> (f64, u16, u8, u128) {
 }
 
 // state, depth, alpha, beta, ply from root, prev zobrist key -> eval, best move
-fn negamax(s: &state::State, depth: u8, mut a: f64, mut b: f64, ply: u8, key: u64) -> (f64, u16) {
+fn negascout(s: &state::State, depth: u8, mut a: f64, b: f64, ply: u8, key: u64) -> (f64, u16) {
     // Search is done
     if depth == 0 {
         return (eval::material_eval(s) as f64, 0);
@@ -49,44 +49,48 @@ fn negamax(s: &state::State, depth: u8, mut a: f64, mut b: f64, ply: u8, key: u6
 
     // Check Transposition table
     let tt_res = TT.get().unwrap().get(key);
-    let tt_miss = false;
+    let mut tt_hit = true;
     let entry = match tt_res {
         Some(res) => res,
         None => {
-            tt_miss = true;
+            tt_hit = false;
             table::Entry::default()
         }
     };
 
-    // Since the 4 most significant bits represent specially interesting moves (tt lookups & captures & checks)
-    // The higher a number is the more interesting it is -> we sort the vector to get the highest moves first
-    // This will make the moves that are higher up in the board earlier
-    // Which is kind of ok, since they are more aggresive
-    // -> You maybe would have to flip this for black though
-    let moves: Vec<u16> = move_gen::move_gen::moves(s);
-    // Sorts in place but does not retain the order of equal elements (we dont care)
-    moves.sort_unstable();
-
-    let mut score = f64::MIN;
+    let mut best_score = f64::MIN;
     let mut best_move = 0;
+    let mut principle_variation = true;
 
-    // Alpha beta pruning
-    for m in moves {
-        let outcome = move_gen::outcome::outcome(s, m);
+    let mut move_gen = move_gen(s);
+
+    move_gen.find(){
+        let outcome = move_gen::outcome::outcome(s, crate::mv::mv::full_move(m));
         let next_key = table::next_zobrist(s, key, m);
-        let res = negamax(&outcome, depth - 1, -b, -a, ply + 1, next_key);
-        let eval = -res.0;
-        if eval > score {
-            score = eval;
-            if eval > a {
-                a = eval;
+        let mut res = (0.0, 0);
+        if principle_variation {
+            principle_variation = false;
+            res = negascout(&outcome, depth - 1, -b, -a, ply + 1, next_key);
+        } else {
+            // Null window search
+            res = negascout(&outcome, depth - 1, -a - 1.0, -a, ply + 1, next_key);
+            // You have to do this, since you cant do a "-" before the tupel
+            let score = -res.0;
+            if a < score && score < b {
+                // Failed high -> Full re-search
+                res = negascout(&outcome, depth - 1, -b, -a, ply + 1, next_key);
             }
-            best_move = m
         }
-        if score >= b {
-            return (score, best_move);
+        let score = -res.0;
+        a = f64::max(a, score);
+        if score > best_score {
+            best_score = score;
+            best_move = m;
+        }
+        if a >= b {
+            break; // Prune :)
         }
     }
 
-    (score, best_move)
+    (best_score, best_move)
 }

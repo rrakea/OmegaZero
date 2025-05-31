@@ -2,24 +2,35 @@ use super::state;
 use crate::mv::mv;
 use std::iter;
 
-// Initilaizing the arrays sp that every function call doesnt have to remake them
-static bishop_offsets: [i8; 4] = [7, 9, -7, -9];
-static rook_offsets: [i8; 4] = [1, -1, 8, -8];
-static queen_offsets: [i8; 8] = [1, -1, 8, -8, 7, -7, 9, -9];
-static king_offsets: [i8; 8] = [1, -1, 8, -8, 7, -7, 9, -9];
-static knight_offsets: [i8; 8] = [-10, 6, 15, 17, 10, -6, -15, -17];
+// Initilaizing the arrays so that every function call doesnt have to remake them
+static BISHOP_OFFSETS: [i8; 4] = [7, 9, -7, -9];
+static ROOK_OFFSETS: [i8; 4] = [1, -1, 8, -8];
+static QUEEN_OFFSETS: [i8; 8] = [1, -1, 8, -8, 7, -7, 9, -9];
+static KING_OFFSETS: [i8; 8] = [1, -1, 8, -8, 7, -7, 9, -9];
+static KNIGHT_OFFSETS: [i8; 8] = [-10, 6, 15, 17, 10, -6, -15, -17];
 
-pub fn mv_gen(s: &state::State, best: u64, second: u64) -> impl Iterator<Item = u64> {
-    iter::from_fn(move || {
-        best += 1;
-        second -= 1;
-        Some(vec![best, second])
-    })
-    .flat_map(|batch| batch.into_iter())
+pub fn mv_gen(s: &state::State, best: &u16, second: &u16) -> impl Iterator<Item = u16> {
+    iter::once_with(|| wrapper(*best, *second))
+        .chain(iter::once_with(|| promotions(s)))
+        .chain(iter::once_with(|| checks(s)))
+        .flat_map(|v| v.into_iter())
+}
+
+fn wrapper(best: u16, second: u16) -> Vec<u16> {
+    vec![best, second]
+}
+
+fn checks(s: &state::State) -> Vec<u16> {
+    Vec::new()
+}
+
+fn promotions(s: &state::State) -> Vec<u16> {
+    Vec::new()
 }
 
 pub fn moves(s: &state::State) -> Vec<u16> {
     let mut moves: Vec<u16> = Vec::new();
+
     let active = s.active();
 
     for (i, p) in s.board.iter().enumerate() {
@@ -27,10 +38,10 @@ pub fn moves(s: &state::State) -> Vec<u16> {
             0 => {}
             state::PAWN => moves.append(&mut can_pawn_move(s, i as u8)),
             state::KNIGHT => moves.append(&mut can_knight_move(s, i as u8)),
-            state::BISHOP => moves.append(&mut can_move(s, &bishop_offsets, i as u8, true)),
-            state::ROOK => moves.append(&mut can_move(s, &rook_offsets, i as u8, true)),
-            state::QUEEN => moves.append(&mut can_move(s, &queen_offsets, i as u8, true)),
-            state::KING => moves.append(&mut can_move(s, &king_offsets, i as u8, false)),
+            state::BISHOP => moves.append(&mut can_move(s, &BISHOP_OFFSETS, i as u8, true)),
+            state::ROOK => moves.append(&mut can_move(s, &ROOK_OFFSETS, i as u8, true)),
+            state::QUEEN => moves.append(&mut can_move(s, &QUEEN_OFFSETS, i as u8, true)),
+            state::KING => moves.append(&mut can_move(s, &KING_OFFSETS, i as u8, false)),
             _ => {}
         }
     }
@@ -118,7 +129,7 @@ fn can_move(s: &state::State, offset: &[i8], pos: u8, repeat: bool) -> Vec<u16> 
 
 fn can_knight_move(s: &state::State, pos: u8) -> Vec<u16> {
     let mut moves: Vec<(u8, u8)> = Vec::new();
-    for o in knight_offsets {
+    for o in KNIGHT_OFFSETS {
         let new_pos = pos as i16 + o as i16;
         // Out of bounds
         if new_pos < 0 || new_pos > 63 {

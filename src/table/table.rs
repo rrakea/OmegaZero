@@ -45,21 +45,21 @@ pub fn init_transposition_table() -> TT {
 }
 
 impl TT {
-    pub fn get(&self, key: u64) -> Option<Entry> {
+    pub fn get(&self, key: u64) -> Entry {
         let index: usize = key as usize % TABLE_SIZE;
         let e = &self.t[index as usize];
         if e.key == key {
-            Some(e.clone())
+            e.clone()
         } else {
             if e.key != 0 {
                 println!("20 Bit Hash Collision!")
             }
-            None
+            Entry::default()
         }
     }
 
-    pub fn set(&mut self, key: u64, entry: Entry) {
-        let index = key as usize % TABLE_SIZE;
+    pub fn set(&mut self, entry: Entry) {
+        let index = entry.key as usize % TABLE_SIZE;
         self.t[index] = entry;
     }
 }

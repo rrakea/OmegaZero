@@ -2,16 +2,22 @@ use crate::eval::eval;
 use crate::move_gen;
 use crate::move_gen::state;
 use crate::table::table;
-use std::sync;
+use once_cell::sync::Lazy;
+use std::sync::RwLock;
 use std::time;
 
-static START: sync::OnceLock<time::Instant> = sync::OnceLock::new();
-static ALLOC_TIME: sync::OnceLock<time::Duration> = sync::OnceLock::new();
+// Lazy is initialized on first access!
+static START: Lazy<RwLock<time::Instant>> = Lazy::new(|| RwLock::new(time::Instant::now()));
+static ALLOC_TIME: Lazy<RwLock<time::Duration>> = Lazy::new(|| RwLock::new(time::Duration));
 
-static TT: sync::OnceLock<table::TT> = sync::OnceLock::new();
+static TT: Lazy(RwLock<table::TT>) = Lazy::new();
+
+pub fn init_tt() {
+    TT.set(table::init_transposition_table());
+}
 
 // State, time, zobrist key of start pos -> eval, best move, search depth, time taken
-fn search(s: &state::State, time: u64, key: u64) -> (f64, u16, u8, u128) {
+pub fn search(s: &state::State, time: u64, key: u64) -> (f64, u16, u8, u128) {
     START.set(time::Instant::now());
     ALLOC_TIME.set(time::Duration::from_secs(time));
 
@@ -48,28 +54,22 @@ fn negascout(s: &state::State, depth: u8, mut a: f64, b: f64, ply: u8, key: u64)
     }
 
     // Check Transposition table
-    let tt_res = TT.get().unwrap().get(key);
-    let mut tt_hit = true;
-    let entry = match tt_res {
-        Some(res) => res,
-        None => {
-            tt_hit = false;
-            table::Entry::default()
-        }
-    };
+    let entry = TT.get().unwrap().get(key);
 
     let mut best_score = f64::MIN;
     let mut best_move = 0;
-    let mut principle_variation = true;
 
-    let mut move_gen = move_gen(s);
+    let mut second_score = f64::MIN;
+    let mut second_move = 0;
 
-    move_gen.find(){
+    let move_gen = move_gen::move_gen::mv_gen(s, &entry.best, &entry.second);
+
+    for (i, m) in move_gen.enumerate() {
         let outcome = move_gen::outcome::outcome(s, crate::mv::mv::full_move(m));
         let next_key = table::next_zobrist(s, key, m);
-        let mut res = (0.0, 0);
-        if principle_variation {
-            principle_variation = false;
+        let mut res;
+        if i < 2 {
+            // Transposition table hits
             res = negascout(&outcome, depth - 1, -b, -a, ply + 1, next_key);
         } else {
             // Null window search
@@ -86,11 +86,25 @@ fn negascout(s: &state::State, depth: u8, mut a: f64, b: f64, ply: u8, key: u64)
         if score > best_score {
             best_score = score;
             best_move = m;
+        } else if score > second_score {
+            second_score = score;
+            second_move = m;
         }
+
         if a >= b {
             break; // Prune :)
         }
     }
-
+    // Age and node type not set
+    let new_entry = table::Entry {
+        key,
+        best: best_move,
+        second: second_move,
+        score: best_score as i8,
+        depth,
+        node_type: 0,
+        age: 0,
+    };
+    TT.get().unwrap().set(new_entry);
     (best_score, best_move)
 }

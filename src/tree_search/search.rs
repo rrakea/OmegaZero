@@ -6,55 +6,69 @@ use once_cell::sync::Lazy;
 use std::sync::RwLock;
 use std::time;
 
-// Lazy is initialized on first access!
-static START: Lazy<RwLock<time::Instant>> = Lazy::new(|| RwLock::new(time::Instant::now()));
-static ALLOC_TIME: Lazy<RwLock<time::Duration>> = Lazy::new(|| RwLock::new(time::Duration));
+// This will stop working in 292 billion years :(
+static mut START: u64 = 0;
+static mut END: u64 = 0;
 
-static TT: Lazy(RwLock<table::TT>) = Lazy::new();
-
-pub fn init_tt() {
-    TT.set(table::init_transposition_table());
-}
+static TT: Lazy<RwLock<table::TT>> = Lazy::new(|| RwLock::new(table::init_transposition_table()));
 
 // State, time, zobrist key of start pos -> eval, best move, search depth, time taken
-pub fn search(s: &state::State, time: u64, key: u64) -> (f64, u16, u8, u128) {
-    START.set(time::Instant::now());
-    ALLOC_TIME.set(time::Duration::from_secs(time));
-
+// Time in milliseconds!!!!!
+pub fn search(s: &state::State, time: u64, key: u64) -> (f64, u16, u8, u64) {
+    // Safe since none of the threads have started searching yet
+    // Wont be mutated till the next move is made
+    unsafe {
+        START = time::SystemTime::now()
+            .duration_since(time::SystemTime::UNIX_EPOCH)
+            .unwrap()
+            .as_millis() as u64;
+        END = START + time;
+    }
     let mut depth = 1;
-    let mut res = (f64::MIN, 0);
 
     // Iterative deepening
     loop {
-        if START.get().unwrap().elapsed() >= *ALLOC_TIME.get().unwrap() {
+        if current_time() >= unsafe { END } {
             break;
         }
-        res = negascout(s, depth, f64::MIN, f64::MAX, 0, key);
+        negascout(s, depth, f64::MIN, f64::MAX, 0, key);
         depth += 1;
     }
 
+    // Look up the results in the TT table
+    let res = TT.read().unwrap().get(key);
+    if res.key != key {
+        // This should NEVER happen if the hashing is any good
+        println!("Well.. fuck. Overwritten the starting position entry")
+    }
     (
-        res.0,
-        res.1,
+        res.score as f64,
+        res.best,
         depth + 1,
-        START.get().unwrap().elapsed().as_millis(),
+        current_time() - unsafe { START },
     )
 }
 
 // state, depth, alpha, beta, ply from root, prev zobrist key -> eval, best move
-fn negascout(s: &state::State, depth: u8, mut a: f64, b: f64, ply: u8, key: u64) -> (f64, u16) {
+fn negascout(s: &state::State, depth: u8, mut a: f64, b: f64, ply: u8, key: u64) -> f64 {
     // Search is done
     if depth == 0 {
-        return (eval::material_eval(s) as f64, 0);
-    }
-
-    // We are only 1 move away from root && deep enough into the deepening && time ran out
-    if ply == 1 && depth > 6 && START.get().unwrap().elapsed() >= *ALLOC_TIME.get().unwrap() {
-        return (f64::MIN, 0);
+        return eval::material_eval(s) as f64;
     }
 
     // Check Transposition table
-    let entry = TT.get().unwrap().get(key);
+    let entry = TT.read().unwrap().get(key);
+
+    // Since the search is better than ours will be
+    // This also takes care of repetitions and transpositions
+    if entry.depth > depth {
+        return entry.score as f64;
+    }
+
+    // We are only 1 move away from root && deep enough into the deepening && time ran out
+    if ply == 1 && depth > 6 && current_time() >= unsafe { END } {
+        return entry.score as f64;
+    }
 
     let mut best_score = f64::MIN;
     let mut best_move = 0;
@@ -62,26 +76,25 @@ fn negascout(s: &state::State, depth: u8, mut a: f64, b: f64, ply: u8, key: u64)
     let mut second_score = f64::MIN;
     let mut second_move = 0;
 
+    // Iterator
     let move_gen = move_gen::move_gen::mv_gen(s, &entry.best, &entry.second);
 
     for (i, m) in move_gen.enumerate() {
         let outcome = move_gen::outcome::outcome(s, crate::mv::mv::full_move(m));
         let next_key = table::next_zobrist(s, key, m);
-        let mut res;
+        let mut score;
         if i < 2 {
             // Transposition table hits
-            res = negascout(&outcome, depth - 1, -b, -a, ply + 1, next_key);
+            score = -negascout(&outcome, depth - 1, -b, -a, ply + 1, next_key);
         } else {
             // Null window search
-            res = negascout(&outcome, depth - 1, -a - 1.0, -a, ply + 1, next_key);
+            score = -negascout(&outcome, depth - 1, -a - 1.0, -a, ply + 1, next_key);
             // You have to do this, since you cant do a "-" before the tupel
-            let score = -res.0;
             if a < score && score < b {
                 // Failed high -> Full re-search
-                res = negascout(&outcome, depth - 1, -b, -a, ply + 1, next_key);
+                score = -negascout(&outcome, depth - 1, -b, -a, ply + 1, next_key);
             }
         }
-        let score = -res.0;
         a = f64::max(a, score);
         if score > best_score {
             best_score = score;
@@ -105,6 +118,17 @@ fn negascout(s: &state::State, depth: u8, mut a: f64, b: f64, ply: u8, key: u64)
         node_type: 0,
         age: 0,
     };
-    TT.get().unwrap().set(new_entry);
-    (best_score, best_move)
+
+    // If our depth is lower we would have quit out before
+    {
+        TT.write().unwrap().set(new_entry);
+    }
+    best_score
+}
+
+fn current_time() -> u64 {
+    time::SystemTime::now()
+        .duration_since(time::SystemTime::UNIX_EPOCH)
+        .unwrap()
+        .as_millis() as u64
 }

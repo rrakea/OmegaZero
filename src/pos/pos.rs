@@ -2,6 +2,13 @@
 // Using a hybrid approach of both bitboards and square centric
 
 // w/b for color & p/n/b/r/q/k for the pieces using the common abbreviations
+const WPAWN: i8 = 1;
+const WBISHOP: i8 = 2;
+const WKNIGHT: i8 = 3;
+const WROOK: i8 = 4;
+const WQUEEN: i8 = 5;
+const WKING: i8 = 6;
+
 pub struct Pos {
     // Bitboards
     pub wp: u64,
@@ -18,7 +25,7 @@ pub struct Pos {
     pub bq: u64,
     pub bk: u64,
 
-    // Attack Tables:
+    // Attack Tables
     pub wattack: u64,
     pub battack: u64,
 
@@ -35,12 +42,12 @@ pub struct Pos {
 }
 
 impl Pos {
-    fn en_passant_rank(&self) -> u8 {
+    pub fn en_passant_rank(&self) -> u8 {
         self.data & 0b0000_1111
     }
 
     // -> kingside, queenside
-    fn castling(&self, color: i8) -> (bool, bool) {
+    pub fn castling(&self, color: i8) -> (bool, bool) {
         if color == 1 {
             (self.data & 0b0001_0000 > 0, self.data & 0b0010_0000 > 0)
         } else {

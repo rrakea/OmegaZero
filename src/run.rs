@@ -4,9 +4,8 @@ use crate::table;
 use crate::tree_search;
 
 pub fn run() {
-    let start = move_gen::fen::fen_to_board(move_gen::fen::START);
-    let mut pos = start;
-    tree_search::search::init_tt();
+    let mut pos = move_gen::fen::fen_to_board(move_gen::fen::START);
+
     table::table::init_zobrist_keys();
     let key = table::table::zobrist(&pos);
 

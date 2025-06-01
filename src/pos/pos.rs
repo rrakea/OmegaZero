@@ -2,12 +2,12 @@
 // Using a hybrid approach of both bitboards and square centric
 
 // w/b for color & p/n/b/r/q/k for the pieces using the common abbreviations
-const WPAWN: i8 = 1;
-const WBISHOP: i8 = 2;
-const WKNIGHT: i8 = 3;
-const WROOK: i8 = 4;
-const WQUEEN: i8 = 5;
-const WKING: i8 = 6;
+pub const WPAWN: i8 = 1;
+pub const WBISHOP: i8 = 2;
+pub const WKNIGHT: i8 = 3;
+pub const WROOK: i8 = 4;
+pub const WQUEEN: i8 = 5;
+pub const WKING: i8 = 6;
 
 pub struct Pos {
     // Bitboards
@@ -42,8 +42,12 @@ pub struct Pos {
 }
 
 impl Pos {
-    pub fn en_passant_rank(&self) -> u8 {
-        self.data & 0b0000_1111
+    pub fn is_en_passant(&self) -> bool {
+        (self.data & 0b0000_1000) != 0
+    }
+
+    pub fn en_passant_file(&self) -> u8 {
+        self.data & 0b0000_0111
     }
 
     // -> kingside, queenside

@@ -1,6 +1,6 @@
 use crate::mv::mv;
-use crate::pos::bboard;
 use crate::pos::pos::Pos;
+use crate::pos::{bboard, pos};
 use std::iter;
 
 /*
@@ -106,7 +106,25 @@ fn promotions(p: &Pos) -> Vec<u16> {
 
 fn checks(p: &Pos) -> Vec<u16> {}
 
-fn en_passant(p: &Pos) -> Vec<u16> {}
+fn en_passant(p: &Pos) -> Vec<u16> {
+    let mv = Vec::new();
+    if p.is_en_passant() {
+        let ep_file = p.en_passant_file() as i8;
+        let left: i8 = ep_file - 1;
+        let right: i8 = ep_file + 1;
+        let rank = if p.active == 1 { 5 } else { 4 };
+        let pawn_code = if p.active == 1 {
+            pos::WPAWN
+        } else {
+            -pos::WPAWN
+        };
+        if left != -1 && left != 8 && p.sq[(rank * 8 + left) as usize] == pawn_code {
+            mv.push(mv::gen_mv(rank * 8 + left, end, code));
+        }
+    }
+
+    mv
+}
 
 fn caps(p: &Pos) -> Vec<u16> {}
 
@@ -125,7 +143,7 @@ fn castle(p: &Pos) -> Vec<u16> {
         && p.sq[king_pos as usize + 2] == 0
         && king_cant_be_attacked & op_attack == 0
     {
-        mv.push(mv::gen_mv(king_pos, king_pos + 2, 2))
+        mv.push(mv::gen_mv(king_pos, king_pos + 2, mv::K_CASTLE))
     }
 
     // Queen side
@@ -136,14 +154,36 @@ fn castle(p: &Pos) -> Vec<u16> {
         && p.sq[king_pos as usize - 3] == 0
         && queen_cant_be_attacked & op_attack == 0
     {
-        mv.push(mv::gen_mv(king_pos, king_pos - 2, mv::K_CASTLE));
+        mv.push(mv::gen_mv(king_pos, king_pos - 2, mv::Q_CASTLE));
     }
     mv
 }
 
 fn quiet_piece(p: &Pos) -> Vec<u16> {}
 
-fn quiet_pawn(p: &Pos) -> Vec<u16> {}
+fn quiet_pawn(p: &Pos) -> Vec<u16> {
+    let mut mv = Vec::new();
+    let possible_positions: u64;
+    if p.active == 1 {
+        // The pawns cant stand on the last or first rank (0/7)
+        // Rank 6 is covered by the promotion function
+        possible_positions =
+            RANK_MASKS[1] | RANK_MASKS[2] | RANK_MASKS[3] | RANK_MASKS[4] | RANK_MASKS[5];
+    } else {
+        possible_positions =
+            RANK_MASKS[6] | RANK_MASKS[5] | RANK_MASKS[4] | RANK_MASKS[3] | RANK_MASKS[2];
+    }
+    let bb = if p.active == 1 { p.wp } else { p.bp };
+    let pawns = bboard::get(possible_positions ^ bb);
+    let offset = if p.active == 1 { 8 } else { -8 };
+    for pawn in pawns {
+        let second_pos = (pawn as i8 + offset) as u8;
+        if p.sq[second_pos as usize] == 0 {
+            mv.push(mv::gen_mv(pawn, second_pos, mv::QUIET));
+        }
+    }
+    mv
+}
 
 fn double_pawn(p: &Pos) -> Vec<u16> {
     let mut mv = Vec::new();

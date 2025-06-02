@@ -17,9 +17,8 @@ Negascout/ Principle Variation Search
 ## TODO:
 Attack boards  
 Magic bitboards  
-Legal Move  
 Finishing Zobrist key gen  
-Piece Square Tables  
+Piece Square Table evaluation
 Quiescence Search  
 Late move reductions  
 Lazy SMP parallelisation  

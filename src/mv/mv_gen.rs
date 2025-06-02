@@ -51,6 +51,16 @@ pub fn mv_gen(p: &Pos, best: &u16, second: &u16) -> impl Iterator<Item = u16> {
         .flat_map(|v| v.into_iter())
 }
 
+// I am not sure wether to include en passant and promotions in this
+// Since Promotions are huge swings they will cause the horizen effect
+// On the other hand a promotion might me possible but not good for a long time
+pub fn quies_mv_gen(p: &Pos) -> impl Iterator<Item = u16> {
+    iter::once_with(|| caps(p))
+        .chain(iter::once_with(|| en_passant(p)))
+        .chain(iter::once_with(|| promotions(p)))
+        .flat_map(|v| v.into_iter())
+}
+
 fn wrapper(best: u16, second: u16) -> Vec<u16> {
     vec![best, second]
 }
@@ -62,7 +72,7 @@ fn promotions(p: &Pos) -> Vec<u16> {
     let rank = if p.active == 1 { 6 } else { 2 };
     let bb = if p.active == 1 { p.wp } else { p.bp };
     // Only pawns that are on the last rank
-    let second_rank = bb ^ RANK_MASKS[rank];
+    let second_rank = bb & RANK_MASKS[rank];
     if second_rank != 0 {
         let potentials = bboard::get(second_rank);
         for pawn in potentials {
@@ -76,23 +86,14 @@ fn promotions(p: &Pos) -> Vec<u16> {
                 mv.push(mv::gen_mv(pawn, second_pos, mv::Q_PROM));
             }
             let cap_left: u8 = (pawn as i8 + 7 * p.active) as u8;
-            if no_wrap(pawn, cap_left)
-                && dif_colors(
-                    p.sq[(pawn as i8 + 7 * p.active) as usize],
-                    p.sq[pawn as usize],
-                )
-            {
+            if no_wrap(pawn, cap_left) && dif_colors(p.sq[cap_left as usize], p.sq[pawn as usize]) {
                 mv.push(mv::gen_mv(pawn, cap_left, mv::N_PROM_CAP));
                 mv.push(mv::gen_mv(pawn, cap_left, mv::B_PROM_CAP));
                 mv.push(mv::gen_mv(pawn, cap_left, mv::R_PROM_CAP));
                 mv.push(mv::gen_mv(pawn, cap_left, mv::Q_PROM_CAP));
             }
             let cap_right = (pawn as i8 + 9 * p.active) as u8;
-            if no_wrap(pawn, cap_right)
-                && dif_colors(
-                    p.sq[(pawn as i8 + 7 * p.active) as usize],
-                    p.sq[pawn as usize],
-                )
+            if no_wrap(pawn, cap_right) && dif_colors(p.sq[cap_right as usize], p.sq[pawn as usize])
             {
                 mv.push(mv::gen_mv(pawn, cap_right, mv::N_PROM_CAP));
                 mv.push(mv::gen_mv(pawn, cap_right, mv::B_PROM_CAP));

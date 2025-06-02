@@ -8,12 +8,12 @@ Encoding inspired by Chess Programming Wiki:
 
 pub const QUIET: u8 = 0;
 pub const CAP: u8 = 1;
-pub const K_CASTLE: u8 = 2;
-pub const Q_CASTLE: u8 = 3;
-pub const DOUBLE_PAWN: u8 = 4;
-pub const EN_PASSANT: u8 = 5;
-pub const EN_PASSANT_CAP: u8 = 6;
-pub const NULL: u8 = 7;
+pub const W_K_CASTLE: u8 = 2;
+pub const W_Q_CASTLE: u8 = 3;
+pub const B_K_CASTLE: u8 = 4;
+pub const B_Q_CASTLE: u8 = 5;
+pub const DOUBLE_PAWN: u8 = 6;
+pub const EN_PASSANT_CAP: u8 = 7;
 pub const N_PROM: u8 = 8;
 pub const B_PROM: u8 = 9;
 pub const R_PROM: u8 = 10;

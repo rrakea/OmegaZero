@@ -9,6 +9,7 @@ pub const WROOK: i8 = 4;
 pub const WQUEEN: i8 = 5;
 pub const WKING: i8 = 6;
 
+#[derive(Clone, Debug)]
 pub struct Pos {
     // Bitboards
     pub wp: u64,

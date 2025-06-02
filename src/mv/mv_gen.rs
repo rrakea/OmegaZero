@@ -65,8 +65,6 @@ fn wrapper(best: u16, second: u16) -> Vec<u16> {
     vec![best, second]
 }
 
-fn attack_tables(p: &Pos) -> (u64, u64) {}
-
 fn promotions(p: &Pos) -> Vec<u16> {
     let mut mv = Vec::new();
     let rank = if p.active == 1 { 6 } else { 2 };
@@ -108,7 +106,7 @@ fn promotions(p: &Pos) -> Vec<u16> {
 fn checks(p: &Pos) -> Vec<u16> {}
 
 fn en_passant(p: &Pos) -> Vec<u16> {
-    let mv = Vec::new();
+    let mut mv = Vec::new();
     if p.is_en_passant() {
         let ep_file = p.en_passant_file() as i8;
         let left: i8 = ep_file - 1;
@@ -119,8 +117,20 @@ fn en_passant(p: &Pos) -> Vec<u16> {
         } else {
             -pos::WPAWN
         };
-        if left != -1 && left != 8 && p.sq[(rank * 8 + left) as usize] == pawn_code {
-            mv.push(mv::gen_mv(rank * 8 + left, end, code));
+        if left != -1 && p.sq[(rank * 8 + left) as usize] == pawn_code {
+            mv.push(mv::gen_mv(
+                (rank * 8 + left) as u8,
+                (rank * 8 + ep_file) as u8,
+                mv::EN_PASSANT_CAP,
+            ));
+        }
+
+        if right != 8 && p.sq[(rank * 8 + right) as usize] == pawn_code {
+            mv.push(mv::gen_mv(
+                (rank * 8 + right) as u8,
+                (rank * 8 + ep_file) as u8,
+                mv::EN_PASSANT_CAP,
+            ));
         }
     }
 
@@ -144,7 +154,12 @@ fn castle(p: &Pos) -> Vec<u16> {
         && p.sq[king_pos as usize + 2] == 0
         && king_cant_be_attacked & op_attack == 0
     {
-        mv.push(mv::gen_mv(king_pos, king_pos + 2, mv::K_CASTLE))
+        let code = if p.active == 1 {
+            mv::W_K_CASTLE
+        } else {
+            mv::B_K_CASTLE
+        };
+        mv.push(mv::gen_mv(king_pos, king_pos + 2, code))
     }
 
     // Queen side
@@ -155,7 +170,12 @@ fn castle(p: &Pos) -> Vec<u16> {
         && p.sq[king_pos as usize - 3] == 0
         && queen_cant_be_attacked & op_attack == 0
     {
-        mv.push(mv::gen_mv(king_pos, king_pos - 2, mv::Q_CASTLE));
+        let code = if p.active == 1 {
+            mv::W_Q_CASTLE
+        } else {
+            mv::B_Q_CASTLE
+        };
+        mv.push(mv::gen_mv(king_pos, king_pos - 2, code));
     }
     mv
 }

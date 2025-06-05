@@ -1,4 +1,4 @@
-# OmegaZero
+# Feroxyhyte
 Chess engine written in rust
 
 ### Board Representation:

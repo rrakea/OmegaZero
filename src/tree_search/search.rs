@@ -10,6 +10,7 @@ use std::time;
 static mut START: u64 = 0;
 static mut END: u64 = 0;
 
+// This will not stay as a rwlock for long :)
 static TT: Lazy<RwLock<table::TT>> = Lazy::new(|| RwLock::new(table::init_transposition_table()));
 
 // State, time, zobrist key of start pos -> eval, best move, search depth, time taken

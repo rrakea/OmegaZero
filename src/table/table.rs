@@ -1,7 +1,7 @@
-use std::sync::OnceLock;
-
-use crate::move_gen::state;
+use crate::mv;
+use crate::pos;
 use rand::RngCore;
+use std::sync::OnceLock;
 
 pub struct TT {
     t: Vec<Entry>,
@@ -149,6 +149,8 @@ pub fn zobrist(s: &state::State) -> u64 {
     hash
 }
 
-pub fn next_zobrist(s: &state::State, hash: u64, mv: u16) -> u64 {
-    0
+pub fn next_zobrist(p: &pos::pos::Pos, hash: u64, mv: u16) -> u64 {
+    match mv::mv::mv_code(mv) {
+        _ => panic!("Wrong move code {}", mv),
+    }
 }

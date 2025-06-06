@@ -1,3 +1,4 @@
+use crate::mv::constants;
 use crate::mv::mv;
 use crate::pos::pos::Pos;
 use crate::pos::{bboard, pos};
@@ -14,29 +15,6 @@ use std::iter;
     Quiet pawn moves
     Double pawn moves
 */
-
-// RANK[0] corresponds to RANK 1 (not like they are displayed here)
-const RANK_MASKS: [u64; 8] = [
-    0x00000000000000FF,
-    0x000000000000FF00,
-    0x0000000000FF0000,
-    0x00000000FF000000,
-    0x000000FF00000000,
-    0x0000FF0000000000,
-    0x00FF000000000000,
-    0xFF00000000000000,
-];
-
-const FILE_MASKS: [u64; 8] = [
-    0x0101010101010101,
-    0x0202020202020202,
-    0x0404040404040404,
-    0x0808080808080808,
-    0x1010101010101010,
-    0x2020202020202020,
-    0x4040404040404040,
-    0x8080808080808080,
-];
 
 pub fn mv_gen(p: &Pos, best: &u16, second: &u16) -> impl Iterator<Item = u16> {
     iter::once_with(|| wrapper(*best, *second))
@@ -70,7 +48,7 @@ fn promotions(p: &Pos) -> Vec<u16> {
     let rank = if p.active == 1 { 6 } else { 2 };
     let bb = if p.active == 1 { p.wp } else { p.bp };
     // Only pawns that are on the last rank
-    let second_rank = bb & RANK_MASKS[rank];
+    let second_rank = bb & constants::RANK_MASKS[rank];
     if second_rank != 0 {
         let potentials = bboard::get(second_rank);
         for pawn in potentials {
@@ -188,11 +166,17 @@ fn quiet_pawn(p: &Pos) -> Vec<u16> {
     if p.active == 1 {
         // The pawns cant stand on the last or first rank (0/7)
         // Rank 6 is covered by the promotion function
-        possible_positions =
-            RANK_MASKS[1] | RANK_MASKS[2] | RANK_MASKS[3] | RANK_MASKS[4] | RANK_MASKS[5];
+        possible_positions = constants::RANK_MASKS[1]
+            | constants::RANK_MASKS[2]
+            | constants::RANK_MASKS[3]
+            | constants::RANK_MASKS[4]
+            | constants::RANK_MASKS[5];
     } else {
-        possible_positions =
-            RANK_MASKS[6] | RANK_MASKS[5] | RANK_MASKS[4] | RANK_MASKS[3] | RANK_MASKS[2];
+        possible_positions = constants::RANK_MASKS[6]
+            | constants::RANK_MASKS[5]
+            | constants::RANK_MASKS[4]
+            | constants::RANK_MASKS[3]
+            | constants::RANK_MASKS[2];
     }
     let bb = if p.active == 1 { p.wp } else { p.bp };
     let pawns = bboard::get(possible_positions ^ bb);
@@ -211,7 +195,7 @@ fn double_pawn(p: &Pos) -> Vec<u16> {
 
     let bb = if p.active == 1 { p.wp } else { p.bp };
     let rank = if p.active == 1 { 2 } else { 6 };
-    let second_rank = bb ^ RANK_MASKS[rank];
+    let second_rank = bb ^ constants::RANK_MASKS[rank];
 
     if second_rank != 0 {
         for pawn in bboard::get(second_rank) {

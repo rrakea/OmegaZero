@@ -9,6 +9,13 @@ pub const WROOK: i8 = 4;
 pub const WQUEEN: i8 = 5;
 pub const WKING: i8 = 6;
 
+pub const BPAWN: i8 = -1;
+pub const BBISHOP: i8 = -2;
+pub const BKNIGHT: i8 = -3;
+pub const BROOK: i8 = -4;
+pub const BQUEEN: i8 = -5;
+pub const BKING: i8 = -6;
+
 #[derive(Clone, Debug)]
 pub struct Pos {
     // Bitboards
@@ -60,3 +67,5 @@ impl Pos {
         }
     }
 }
+
+pub fn start_pos() -> Pos {}

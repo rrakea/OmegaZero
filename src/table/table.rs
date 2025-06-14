@@ -149,7 +149,7 @@ pub fn zobrist(s: &state::State) -> u64 {
     hash
 }
 
-pub fn next_zobrist(p: &pos::pos::Pos, hash: u64, mv: u16) -> u64 {
+pub fn next_zobrist(p: &pos::pos::Pos, old_key: u64, mv: u16) -> u64 {
     match mv::mv::mv_code(mv) {
         _ => panic!("Wrong move code {}", mv),
     }

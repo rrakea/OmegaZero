@@ -1,10 +1,11 @@
-use crate::move_gen::state;
+use crate::mv::mv;
+use crate::pos::pos;
 
-pub fn draw(s: &state::State, eval: f64, time_used: f64, search_depth: u32, top_move: (u8, u8)) {
+pub fn draw(p: &pos::Pos, eval: f64, time_used: u64, search_depth: u8, top_move: u16) {
     let mut line: Vec<&str> = Vec::new();
     let mut board: Vec<String> = Vec::new();
 
-    for (sq, p) in s.board.iter().enumerate() {
+    for (sq, val) in p.sq.iter().enumerate() {
         if sq % 8 == 0 {
             line.push("\n");
             board.push(line.concat());
@@ -12,21 +13,21 @@ pub fn draw(s: &state::State, eval: f64, time_used: f64, search_depth: u32, top_
             line.push("|");
         }
 
-        match p {
+        match val {
             0 => line.push(" |"),
-            &state::PAWN => line.push("\u{2659}|"),
-            &state::KNIGHT => line.push("\u{2658}|"),
-            &state::BISHOP => line.push("\u{2657}|"),
-            &state::ROOK => line.push("\u{2656}|"),
-            &state::QUEEN => line.push("\u{2655}|"),
-            &state::KING => line.push("\u{2654}|"),
+            &pos::WPAWN => line.push("\u{2659}|"),
+            &pos::WKNIGHT => line.push("\u{2658}|"),
+            &pos::WBISHOP => line.push("\u{2657}|"),
+            &pos::WROOK => line.push("\u{2656}|"),
+            &pos::WQUEEN => line.push("\u{2655}|"),
+            &pos::WKING => line.push("\u{2654}|"),
 
-            &state::BPAWN => line.push("\u{265F}|"),
-            &state::BKNIGHT => line.push("\u{265E}|"),
-            &state::BBISHOP => line.push("\u{265D}|"),
-            &state::BROOK => line.push("\u{265C}|"),
-            &state::BQUEEN => line.push("\u{265B}|"),
-            &state::BKING => line.push("\u{265A}|"),
+            &pos::BPAWN => line.push("\u{265F}|"),
+            &pos::BKNIGHT => line.push("\u{265E}|"),
+            &pos::BBISHOP => line.push("\u{265D}|"),
+            &pos::BROOK => line.push("\u{265C}|"),
+            &pos::BQUEEN => line.push("\u{265B}|"),
+            &pos::BKING => line.push("\u{265A}|"),
             _ => {}
         }
     }
@@ -35,15 +36,12 @@ pub fn draw(s: &state::State, eval: f64, time_used: f64, search_depth: u32, top_
     board.reverse();
 
     println!("{}", board.concat());
-    println!("Move: {}", prittify_move(s, top_move));
-    println!("Active Player: {}", s.active());
-    println!("Data: {}", s.data);
+    println!("Move: {}", prittify_move(p, top_move));
+    println!("Active Player: {}", p.active);
+    println!("Data: {}", p.data);
     println!("Eval: {}", eval);
     println!("Time used: {}s", time_used);
     println!("Search depth: {}", search_depth);
-    if s.en_passant != 0 {
-        println!("Enpassant Square: {}", s.en_passant)
-    }
     println!();
     println!();
 }
@@ -55,34 +53,32 @@ pub fn square_name(sq: u8) -> String {
     let rankstr = (b'1' + rank) as char;
     format!("{}{}", filestr, rankstr)
 }
-pub fn prittify_move(s: &state::State, m: (u8, u8)) -> String {
-    if m == (0, 0) {
-        return String::from("null");
-    }
+
+pub fn prittify_move(p: &pos::Pos, m: u16) -> String {
+    let m = mv::full_move(m);
     let sq = square_name(m.1);
-    let code = s.board[m.1 as usize] * s.active();
+    let code = p.sq[m.1 as usize] * p.active;
     let name = decode(code);
     format!("{}{}", name, sq)
 }
 
 pub fn decode(p: i8) -> String {
-    let mut name: &str;
-    match p {
-        state::PAWN => name = "",
-        state::KING => name = "K",
-        state::BISHOP => name = "B",
-        state::QUEEN => name = "Q",
-        state::KNIGHT => name = "N",
-        state::ROOK => name = "R",
+    let name = match p {
+        pos::WPAWN => "",
+        pos::WKING => "K",
+        pos::WBISHOP => "B",
+        pos::WQUEEN => "Q",
+        pos::WKNIGHT => "N",
+        pos::WROOK => "R",
 
-        state::BPAWN => name = "",
-        state::BKING => name = "K",
-        state::BBISHOP => name = "B",
-        state::BQUEEN => name = "Q",
-        state::BKNIGHT => name = "N",
-        state::BROOK => name = "R",
-        0 => name = "Empty",
-        _ => name = "x",
-    }
+        pos::BPAWN => "",
+        pos::BKING => "K",
+        pos::BBISHOP => "B",
+        pos::BQUEEN => "Q",
+        pos::BKNIGHT => "N",
+        pos::BROOK => "R",
+        0 => "Empty",
+        _ => "x",
+    };
     String::from(name)
 }

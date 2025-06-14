@@ -1,13 +1,14 @@
 use crate::cli;
-use crate::move_gen;
+use crate::mv;
+use crate::pos;
 use crate::table;
 use crate::tree_search;
 
 pub fn run() {
-    let mut pos = move_gen::fen::fen_to_board(move_gen::fen::START);
+    let mut pos = pos::pos::start_pos();
 
     table::table::init_zobrist_keys();
-    let key = table::table::zobrist(&pos);
+    let mut key = table::table::zobrist(&pos);
 
     loop {
         let res = tree_search::search::search(&pos, 15, key);
@@ -15,7 +16,8 @@ pub fn run() {
         let top_move = res.1;
         let depth = res.2;
         let time_taken = res.3;
-        pos = move_gen::outcome::outcome(&pos, top_move);
+        pos = mv::mv_apply::apply(&pos, top_move).unwrap();
+        key = table::table::next_zobrist(&pos, key, top_move);
         cli::draw::draw(&pos, eval, time_taken, depth, top_move);
     }
 }

@@ -1,6 +1,6 @@
 use crate::eval::eval;
-use crate::move_gen;
-use crate::move_gen::state;
+use crate::mv;
+use crate::pos::pos;
 use crate::table::table;
 use once_cell::sync::Lazy;
 use std::sync::RwLock;
@@ -15,7 +15,7 @@ static TT: Lazy<RwLock<table::TT>> = Lazy::new(|| RwLock::new(table::init_transp
 
 // State, time, zobrist key of start pos -> eval, best move, search depth, time taken
 // Time in milliseconds!!!!!
-pub fn search(s: &state::State, time: u64, key: u64) -> (f64, u16, u8, u64) {
+pub fn search(p: &pos::Pos, time: u64, key: u64) -> (f64, u16, u8, u64) {
     // Safe since none of the threads have started searching yet
     // Wont be mutated till the next move is made
     unsafe {
@@ -32,7 +32,7 @@ pub fn search(s: &state::State, time: u64, key: u64) -> (f64, u16, u8, u64) {
         if current_time() >= unsafe { END } {
             break;
         }
-        negascout(s, depth, f64::MIN, f64::MAX, 0, key);
+        negascout(p, depth, f64::MIN, f64::MAX, 0, key);
         depth += 1;
     }
 
@@ -51,10 +51,10 @@ pub fn search(s: &state::State, time: u64, key: u64) -> (f64, u16, u8, u64) {
 }
 
 // state, depth, alpha, beta, ply from root, prev zobrist key -> eval, best move
-fn negascout(s: &state::State, depth: u8, mut a: f64, b: f64, ply: u8, key: u64) -> f64 {
+fn negascout(p: &pos::Pos, depth: u8, mut a: f64, b: f64, ply: u8, key: u64) -> f64 {
     // Search is done
     if depth == 0 {
-        return eval::material_eval(s) as f64;
+        return eval::material_eval(p) as f64;
     }
 
     // Check Transposition table
@@ -78,11 +78,15 @@ fn negascout(s: &state::State, depth: u8, mut a: f64, b: f64, ply: u8, key: u64)
     let mut second_move = 0;
 
     // Iterator
-    let move_gen = move_gen::move_gen::mv_gen(s, &entry.best, &entry.second);
+    let move_gen = mv::mv_gen::mv_gen(p, &entry.best, &entry.second);
 
     for (i, m) in move_gen.enumerate() {
-        let outcome = move_gen::outcome::outcome(s, crate::mv::mv::full_move(m));
-        let next_key = table::next_zobrist(s, key, m);
+        let outcome = mv::mv_apply::apply(p, m);
+        let outcome = match outcome {
+            Some(o) => o,
+            None => continue,
+        };
+        let next_key = table::next_zobrist(p, key, m);
         let mut score;
         if i < 2 {
             // Transposition table hits

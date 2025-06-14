@@ -31,7 +31,7 @@ pub fn mv_gen(p: &Pos, best: &u16, second: &u16) -> impl Iterator<Item = u16> {
 
 // I am not sure wether to include en passant and promotions in this
 // Since Promotions are huge swings they will cause the horizen effect
-// On the other hand a promotion might me possible but not good for a long time
+// On the other hand a promotion might be possible but not good for a long time
 pub fn quies_mv_gen(p: &Pos) -> impl Iterator<Item = u16> {
     iter::once_with(|| caps(p))
         .chain(iter::once_with(|| en_passant(p)))

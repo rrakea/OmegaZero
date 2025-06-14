@@ -1,5 +1,5 @@
 use crate::mv;
-use crate::pos;
+use crate::pos::pos;
 use rand::RngCore;
 use std::sync::OnceLock;
 
@@ -101,33 +101,33 @@ pub fn init_zobrist_keys() {
     BLACK.set(rng.next_u64());
 }
 
-pub fn zobrist(s: &state::State) -> u64 {
+pub fn zobrist(p: &pos::Pos) -> u64 {
     let mut keys: Vec<u64> = Vec::new();
-    for (i, p) in s.board.iter().enumerate() {
-        match *p {
-            state::PAWN => keys.push(PAWN.get().unwrap()[i]),
-            state::KNIGHT => keys.push(KNIGHT.get().unwrap()[i]),
-            state::BISHOP => keys.push(BISHOP.get().unwrap()[i]),
-            state::ROOK => keys.push(ROOK.get().unwrap()[i]),
-            state::QUEEN => keys.push(QUEEN.get().unwrap()[i]),
-            state::KING => keys.push(KING.get().unwrap()[i]),
+    for (i, val) in p.sq.iter().enumerate() {
+        match *val {
+            pos::WPAWN => keys.push(PAWN.get().unwrap()[i]),
+            pos::WKNIGHT => keys.push(KNIGHT.get().unwrap()[i]),
+            pos::WBISHOP => keys.push(BISHOP.get().unwrap()[i]),
+            pos::WROOK => keys.push(ROOK.get().unwrap()[i]),
+            pos::WQUEEN => keys.push(QUEEN.get().unwrap()[i]),
+            pos::WKING => keys.push(KING.get().unwrap()[i]),
 
-            state::BPAWN => keys.push(BPAWN.get().unwrap()[i]),
-            state::BKNIGHT => keys.push(BKNIGHT.get().unwrap()[i]),
-            state::BBISHOP => keys.push(BBISHOP.get().unwrap()[i]),
-            state::BROOK => keys.push(BROOK.get().unwrap()[i]),
-            state::BQUEEN => keys.push(BQUEEN.get().unwrap()[i]),
-            state::BKING => keys.push(BKING.get().unwrap()[i]),
+            pos::BPAWN => keys.push(BPAWN.get().unwrap()[i]),
+            pos::BKNIGHT => keys.push(BKNIGHT.get().unwrap()[i]),
+            pos::BBISHOP => keys.push(BBISHOP.get().unwrap()[i]),
+            pos::BROOK => keys.push(BROOK.get().unwrap()[i]),
+            pos::BQUEEN => keys.push(BQUEEN.get().unwrap()[i]),
+            pos::BKING => keys.push(BKING.get().unwrap()[i]),
             _ => (),
         }
     }
-    let active = s.active();
+    let active = p.active;
     if active == -1 {
         keys.push(*BLACK.get().unwrap());
     }
 
-    let wc = s.can_castle(1);
-    let bc = s.can_castle(-1);
+    let wc = p.castling(1);
+    let bc = p.castling(-1);
     let ckey = CASTLE.get().unwrap();
     if wc.0 {
         keys.push(ckey[0])
@@ -149,7 +149,7 @@ pub fn zobrist(s: &state::State) -> u64 {
     hash
 }
 
-pub fn next_zobrist(p: &pos::pos::Pos, old_key: u64, mv: u16) -> u64 {
+pub fn next_zobrist(p: &pos::Pos, old_key: u64, mv: u16) -> u64 {
     match mv::mv::mv_code(mv) {
         _ => panic!("Wrong move code {}", mv),
     }

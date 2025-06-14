@@ -1,7 +1,6 @@
 pub mod benchmark;
 pub mod cli;
 pub mod eval;
-pub mod move_gen;
 pub mod mv;
 pub mod pos;
 pub mod run;

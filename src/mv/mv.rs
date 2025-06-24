@@ -62,7 +62,3 @@ pub fn start_sq(m: u16) -> u8 {
 pub fn full_move(m: u16) -> (u8, u8) {
     (start_sq(m), end_sq(m))
 }
-
-pub fn rank(sq: u8) -> u8 {}
-
-pub fn file(sq: u8) -> u8 {}

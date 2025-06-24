@@ -17,7 +17,6 @@ Negascout/ Principle Variation Search
 ## TODO:
 Attack boards  
 Magic bitboards  
-Finishing Zobrist key gen  
 Piece Square Table evaluation  
 Quiescence Search  
 Late move reductions  

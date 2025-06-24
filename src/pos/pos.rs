@@ -47,6 +47,8 @@ pub struct Pos {
     pub data: u8,
     // Active player (1 == w; -1 == b)
     pub active: i8,
+    // Zobrist Hashing Key of the current position
+    pub key: u64,
 }
 
 impl Pos {
@@ -70,4 +72,4 @@ impl Pos {
 
 pub fn start_pos() -> Pos {}
 
-pub fn gen_data(ep_rank: u8, w_castle: (bool, bool), b_castle: (bool, bool) {}
+pub fn gen_data(ep_rank: u8, w_castle: (bool, bool), b_castle: (bool, bool)) -> u8 {}

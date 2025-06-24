@@ -4,12 +4,6 @@ const FULL: u64 = u64::MAX;
 
 fn init_bboards(p: &pos::Pos) {}
 
-// popcount: i64::count_ones();
-
-pub fn empty(bb: u64) -> bool {
-    bb == 0
-}
-
 pub fn bb_all(p: &pos::Pos) -> u64 {
     p.wp | p.wn | p.wb | p.wr | p.wq | p.wk | p.bp | p.bn | p.bb | p.br | p.bq | p.bk
 }
@@ -37,7 +31,6 @@ pub fn get(mut bb: u64) -> Vec<u8> {
     mv
 }
 
-// Is there a better way to do this?
-pub fn get_single(mut bb: u64) -> u8 {
-    get(bb)[0]
+pub fn get_single(bb: u64) -> u8 {
+    bb.trailing_zeros() as u8
 }

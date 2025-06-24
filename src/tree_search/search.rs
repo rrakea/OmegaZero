@@ -13,9 +13,9 @@ static mut END: u64 = 0;
 // This will not stay as a rwlock for long :)
 static TT: Lazy<RwLock<table::TT>> = Lazy::new(|| RwLock::new(table::init_transposition_table()));
 
-// State, time, zobrist key of start pos -> eval, best move, search depth, time taken
+// State, time -> eval, best move, search depth, time taken
 // Time in milliseconds!!!!!
-pub fn search(p: &pos::Pos, time: u64, key: u64) -> (f64, u16, u8, u64) {
+pub fn search(p: &pos::Pos, time: u64) -> (f64, u16, u8, u64) {
     // Safe since none of the threads have started searching yet
     // Wont be mutated till the next move is made
     unsafe {
@@ -25,20 +25,20 @@ pub fn search(p: &pos::Pos, time: u64, key: u64) -> (f64, u16, u8, u64) {
             .as_millis() as u64;
         END = START + time;
     }
-    let mut depth = 1;
 
     // Iterative deepening
+    let mut depth = 1;
     loop {
         if current_time() >= unsafe { END } {
             break;
         }
-        negascout(p, depth, f64::MIN, f64::MAX, 0, key);
+        negascout(p, depth, f64::MIN, f64::MAX, 0);
         depth += 1;
     }
 
     // Look up the results in the TT table
-    let res = TT.read().unwrap().get(key);
-    if res.key != key {
+    let res = TT.read().unwrap().get(p.key);
+    if res.key != p.key {
         // This should NEVER happen if the hashing is any good
         println!("Well.. fuck. Overwritten the starting position entry")
     }
@@ -51,14 +51,14 @@ pub fn search(p: &pos::Pos, time: u64, key: u64) -> (f64, u16, u8, u64) {
 }
 
 // state, depth, alpha, beta, ply from root, prev zobrist key -> eval, best move
-fn negascout(p: &pos::Pos, depth: u8, mut a: f64, b: f64, ply: u8, key: u64) -> f64 {
+fn negascout(p: &pos::Pos, depth: u8, mut a: f64, b: f64, ply: u8) -> f64 {
     // Search is done
     if depth == 0 {
         return eval::material_eval(p) as f64;
     }
 
     // Check Transposition table
-    let entry = TT.read().unwrap().get(key);
+    let entry = TT.read().unwrap().get(p.key);
 
     // Since the search is better than ours will be
     // This also takes care of repetitions and transpositions
@@ -86,18 +86,17 @@ fn negascout(p: &pos::Pos, depth: u8, mut a: f64, b: f64, ply: u8, key: u64) -> 
             Some(o) => o,
             None => continue,
         };
-        let next_key = table::next_zobrist(p, key, m);
         let mut score;
         if i < 2 {
             // Transposition table hits
-            score = -negascout(&outcome, depth - 1, -b, -a, ply + 1, next_key);
+            score = -negascout(&outcome, depth - 1, -b, -a, ply + 1);
         } else {
             // Null window search
-            score = -negascout(&outcome, depth - 1, -a - 1.0, -a, ply + 1, next_key);
+            score = -negascout(&outcome, depth - 1, -a - 1.0, -a, ply + 1);
             // You have to do this, since you cant do a "-" before the tupel
             if a < score && score < b {
                 // Failed high -> Full re-search
-                score = -negascout(&outcome, depth - 1, -b, -a, ply + 1, next_key);
+                score = -negascout(&outcome, depth - 1, -b, -a, ply + 1);
             }
         }
         a = f64::max(a, score);
@@ -115,7 +114,7 @@ fn negascout(p: &pos::Pos, depth: u8, mut a: f64, b: f64, ply: u8, key: u64) -> 
     }
     // Age and node type not set
     let new_entry = table::Entry {
-        key,
+        key: p.key,
         best: best_move,
         second: second_move,
         score: best_score as i8,

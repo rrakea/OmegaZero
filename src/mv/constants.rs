@@ -29,10 +29,11 @@ pub const FILE_MASKS: [u64; 8] = [
     0x8080808080808080,
 ];
 
-pub static mut KNIGHT_PREMASKS: [u64; 64] = [0; 64];
 pub static mut BISHOP_PREMASKS: [u64; 64] = [0; 64];
 pub static mut ROOK_PREMASKS: [u64; 64] = [0; 64];
-pub static mut KING_PREMASKS: [u64; 64] = [0; 64];
+
+pub static mut KNIGHT_MOVEMASKS: [u64; 64] = [0; 64];
+pub static mut KING_MOVEMASKS: [u64; 64] = [0; 64];
 
 /*
     Psudo Code for generating the moves
@@ -47,6 +48,8 @@ pub static mut KING_PREMASKS: [u64; 64] = [0; 64];
 */
 
 pub fn init_premasks() {}
+
+pub fn init_movemask() {}
 
 pub const ROOK_MAGIC: [u64; 64] = [];
 pub const BISHOP_MAGIC: [u64; 64] = [];

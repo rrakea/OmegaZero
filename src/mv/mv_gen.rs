@@ -220,7 +220,7 @@ fn bit_mask(b: Vec<u8>) -> u64 {
 }
 
 fn no_wrap(a: u8, b: u8) -> bool {
-    (a % 8 - b % 8) > 1
+    (a % 8 - b % 8) < 1
 }
 
 fn bit_mask_single(b: u8) -> u64 {
@@ -228,7 +228,7 @@ fn bit_mask_single(b: u8) -> u64 {
 }
 
 fn dif_colors(a: i8, b: i8) -> bool {
-    !(a ^ b >= 0)
+    a ^ b < 0
 }
 
 fn same_colors(a: i8, b: i8) -> bool {

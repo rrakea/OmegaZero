@@ -1,20 +1,10 @@
 use super::pos;
-use std::arch::asm;
 
 const FULL: u64 = u64::MAX;
 
 fn init_bboards(p: &pos::Pos) {}
 
-fn population_count(bb: u64) -> u64 {
-    // Uses inline assembly to get the amount of bits flipped in a u64 efficiently
-    if std::is_x86_feature_detected!("popcnt") {
-        let mut res: u64 = 0;
-        unsafe { asm!("popcnt {1} {0}", in(reg) bb, out(reg) res) }
-        res
-    } else {
-        panic!("POPCNT not supported :(")
-    }
-}
+// popcount: i64::count_ones();
 
 pub fn empty(bb: u64) -> bool {
     bb == 0

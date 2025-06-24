@@ -59,23 +59,31 @@ pub fn apply(p: &Pos, mv: u16) -> Option<Pos> {
 
         // TODO Change the sq to the correct ones
         mv::W_K_CASTLE => {
-            set_bboard(&mut npos, pos::WROOK, 0, 0);
-            set_bboard(&mut npos, pos::WROOK, 0, 1);
+            set_bboard(&mut npos, pos::WROOK, 7, 0);
+            npos.sq[7] = 0;
+            set_bboard(&mut npos, pos::WROOK, 5, 1);
+            npos.sq[5] = pos::WROOK;
             w_castle = (false, false)
         }
         mv::W_Q_CASTLE => {
             set_bboard(&mut npos, pos::WROOK, 0, 1);
-            set_bboard(&mut npos, pos::WROOK, 0, 1);
+            npos.sq[0] = 0;
+            set_bboard(&mut npos, pos::WROOK, 3, 1);
+            npos.sq[3] = pos::WROOK;
             w_castle = (false, false)
         }
         mv::B_K_CASTLE => {
-            set_bboard(&mut npos, pos::BROOK, 0, 1);
-            set_bboard(&mut npos, pos::BROOK, 0, 1);
+            set_bboard(&mut npos, pos::BROOK, 63, 1);
+            npos.sq[63] = 0;
+            set_bboard(&mut npos, pos::BROOK, 61, 1);
+            npos.sq[61] = pos::BROOK;
             b_castle = (false, false)
         }
         mv::B_Q_CASTLE => {
-            set_bboard(&mut npos, pos::BROOK, 0, 1);
-            set_bboard(&mut npos, pos::BROOK, 0, 1);
+            set_bboard(&mut npos, pos::BROOK, 56, 1);
+            npos.sq[56] = 0;
+            set_bboard(&mut npos, pos::BROOK, 59, 1);
+            npos.sq[59] = pos::BROOK;
             b_castle = (false, false)
         }
 
@@ -94,6 +102,36 @@ pub fn apply(p: &Pos, mv: u16) -> Option<Pos> {
         }
     }
 
+    if w_castle.0 && (piece == pos::WKING || (piece == pos::WROOK && start == 0)) {
+        w_castle.0 == false
+    }
+
+    if w_castle.1 && (piece == pos::WKING || (piece == pos::WROOK && start == 7)) {
+        w_castle.1 == false
+    }
+
+    if b_castle.0 && (piece == pos::BKING || (piece == pos::BROOK && start == 63)) {
+        b_castle.0 == false
+    }
+
+    if b_castle.1 && (piece == pos::BKING || (piece == pos::BROOK && start == 56)) {
+        b_castle.1 == false
+    }
+
+    // If the rook gets captured
+    if end == 0 {
+        w_castle.0 = false
+    }
+    if end == 7 {
+        w_castle.1 = false
+    }
+    if end == 63 {
+        b_castle.0 = false
+    }
+    if end == 56 {
+        b_castle.1 = false
+    }
+
     npos.data = pos::gen_data(ep_file, w_castle, b_castle);
     if legal_pos(&npos) {
         return Some(npos);
@@ -102,7 +140,43 @@ pub fn apply(p: &Pos, mv: u16) -> Option<Pos> {
     }
 }
 
-fn set_bboard(p: &mut Pos, piece: i8, sq: u8, val: i8) {}
+fn set_bboard(p: &mut Pos, piece: i8, sq: u8, val: i8) {
+    let mut bb = match piece {
+        pos::WPAWN => p.wp,
+        pos::WBISHOP => p.wb,
+        pos::WKNIGHT => p.wn,
+        pos::WROOK => p.wr,
+        pos::WQUEEN => p.wq,
+        pos::WKING => p.wk,
+        pos::BPAWN => p.bp,
+        pos::BBISHOP => p.bb,
+        pos::BKNIGHT => p.bn,
+        pos::BROOK => p.br,
+        pos::BQUEEN => p.bq,
+        pos::BKING => p.bk,
+    };
+
+    if val == 0 {
+        bb &= !(1 << sq);
+    } else {
+        bb &= 1 << sq;
+    }
+
+    match piece {
+        pos::WPAWN => p.wp = bb,
+        pos::WBISHOP => p.wb = bb,
+        pos::WKNIGHT => p.wn = bb,
+        pos::WROOK => p.wr = bb,
+        pos::WQUEEN => p.wq = bb,
+        pos::WKING => p.wk = bb,
+        pos::BPAWN => p.bp = bb,
+        pos::BBISHOP => p.bb = bb,
+        pos::BKNIGHT => p.bn = bb,
+        pos::BROOK => p.br = bb,
+        pos::BQUEEN => p.bq = bb,
+        pos::BKING => p.bk = bb,
+    }
+}
 
 pub fn legal_pos(p: &Pos) -> bool {
     // This is turned around since the opponents king is allowed to be in check

@@ -99,7 +99,7 @@ fn en_passant(p: &Pos) -> Vec<u16> {
             mv.push(mv::gen_mv(
                 (rank * 8 + left) as u8,
                 (rank * 8 + ep_file) as u8,
-                mv::EN_PASSANT_CAP,
+                mv::EN_PASSANT,
             ));
         }
 
@@ -107,7 +107,7 @@ fn en_passant(p: &Pos) -> Vec<u16> {
             mv.push(mv::gen_mv(
                 (rank * 8 + right) as u8,
                 (rank * 8 + ep_file) as u8,
-                mv::EN_PASSANT_CAP,
+                mv::EN_PASSANT,
             ));
         }
     }

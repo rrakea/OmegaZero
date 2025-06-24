@@ -1,7 +1,6 @@
 /*
-Ĺibrary for working with moves encoded as u16
-These encodings are purly usefull for manipulating the bitboards after words
-Move ordering does not use this
+Functions for working with moves encoded as u16
+These encodings are purely usefull for manipulating the bitboards after words
 
 Encoding inspired by Chess Programming Wiki:
 */
@@ -13,7 +12,7 @@ pub const W_Q_CASTLE: u8 = 3;
 pub const B_K_CASTLE: u8 = 4;
 pub const B_Q_CASTLE: u8 = 5;
 pub const DOUBLE_PAWN: u8 = 6;
-pub const EN_PASSANT_CAP: u8 = 7;
+pub const EN_PASSANT: u8 = 7;
 pub const N_PROM: u8 = 8;
 pub const B_PROM: u8 = 9;
 pub const R_PROM: u8 = 10;
@@ -63,3 +62,7 @@ pub fn start_sq(m: u16) -> u8 {
 pub fn full_move(m: u16) -> (u8, u8) {
     (start_sq(m), end_sq(m))
 }
+
+pub fn rank(sq: u8) -> u8 {}
+
+pub fn file(sq: u8) -> u8 {}

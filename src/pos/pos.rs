@@ -38,7 +38,7 @@ pub struct Pos {
     pub battack: u64,
 
     // Square centric representation
-    // Using the consts defined bellow
+    // Using the consts defined
     // (Negativ for black pieces)
     pub sq: [i8; 64],
 
@@ -69,3 +69,5 @@ impl Pos {
 }
 
 pub fn start_pos() -> Pos {}
+
+pub fn gen_data(ep_rank: u8, w_castle: (bool, bool), b_castle: (bool, bool) {}

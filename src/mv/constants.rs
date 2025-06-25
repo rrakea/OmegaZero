@@ -1,3 +1,4 @@
+use crate::util;
 /*
     This is a file for tracking and generating different constants.
     Such as different masks for pieces on each square,
@@ -49,7 +50,23 @@ pub static mut KING_MOVEMASKS: [u64; 64] = [0; 64];
 
 pub fn init_premasks() {}
 
-pub fn init_movemask() {}
+pub fn init_movemask() {
+    // King masks
+    let mut sq: i8;
+    for sq in 0..63 {
+        let mut pos_sq = Vec::new();
+        for offset in vec![1, -1, 8, -8, 7, -7, 9, -9] {
+            let new_pos = sq + offset;
+            if new_pos > 0 && new_pos < 64 && util::util::no_wrap(sq, new_pos) {
+                pos_sq.push(new_pos);
+            }
+        }
+        let bb = util::mask::one_at(pos_sq);
+        unsafe {
+            KING_MOVEMASKS[sq as usize] = bb;
+        }
+    }
+}
 
 pub const ROOK_MAGIC: [u64; 64] = [];
 pub const BISHOP_MAGIC: [u64; 64] = [];

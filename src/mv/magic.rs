@@ -1,3 +1,5 @@
+pub fn init_magic() {}
+
 pub fn queen_mask(sq: u8, active: i8) -> u64 {
     rook_mask(sq, active) | bishop_mask(sq, active)
 }
@@ -8,7 +10,6 @@ pub fn bishop_mask(sq: u8, active: i8) -> u64 {}
 
 pub const ROOK_MAGIC: [u64; 64] = [];
 pub const BISHOP_MAGIC: [u64; 64] = [];
-pub fn init_premasks() {}
 
 /*
     Psudo Code for generating the moves

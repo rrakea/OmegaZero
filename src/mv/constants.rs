@@ -35,21 +35,4 @@ pub static mut ROOK_PREMASKS: [u64; 64] = [0; 64];
 pub static mut KNIGHT_MOVEMASKS: [u64; 64] = [0; 64];
 pub static mut KING_MOVEMASKS: [u64; 64] = [0; 64];
 
-/*
-    Psudo Code for generating the moves
-    fn rook_move(sq: u64) -> u64 {
-        let full_board = get_all(pos);
-        let premask = ROOK_PREMASKS[sq];
-        let magix = ROOK_MAGIC[sq];
-        let shift = ROOK_SHIFT[sq];
-        let index = ((full_board & premask) * magic) >> shift;
-        return attack_bb[index];
-    }
-*/
-
-pub fn init_premasks() {}
-
 pub fn init_movemask() {}
-
-pub const ROOK_MAGIC: [u64; 64] = [];
-pub const BISHOP_MAGIC: [u64; 64] = [];

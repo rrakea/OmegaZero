@@ -115,7 +115,7 @@ fn knight(p: &Pos) -> Vec<u16> {
     // There can only be one king
     let sq = bboard::get_single(bb);
     let mut mv = Vec::new();
-    let movemask = unsafe { constants::KING_MOVEMASKS[sq as usize] };
+    let movemask = unsafe { constants::KNIGHT_MOVEMASKS[sq as usize] };
     mv.append(&mut mv_from_movemask(p, movemask, sq));
     mv
 }
@@ -125,7 +125,7 @@ fn king(p: &Pos) -> Vec<u16> {
     let squares = bboard::get(bb);
     let mut mv = Vec::new();
     for sq in squares {
-        let movemask = unsafe { constants::KNIGHT_MOVEMASKS[sq as usize] };
+        let movemask = unsafe { constants::KING_MOVEMASKS[sq as usize] };
         mv.append(&mut mv_from_movemask(p, movemask, sq));
     }
     mv

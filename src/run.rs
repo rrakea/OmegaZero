@@ -7,8 +7,9 @@ use crate::tree_search;
 pub fn run() {
     table::table::init_zobrist_keys();
     mv::constants::init_premasks();
-    mv::constants::init_premasks();
-    mv::magic::init_magics();
+    mv::constants::init_piecemask();
+
+    mv::magic::init_magic();
 
     let mut pos = pos::pos::start_pos();
 

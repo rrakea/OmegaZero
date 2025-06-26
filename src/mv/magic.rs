@@ -5,7 +5,6 @@ pub fn init_magics() {}
 
 pub fn queen_mask(sq: u8, p: &Pos) -> u64 {
     rook_mask(sq, p) | bishop_mask(sq, p)
-}
 
 pub fn rook_mask(sq: u8, p: &Pos) -> u64 {
     let full = p.full;
@@ -36,15 +35,3 @@ const BISHOP_SHIFT: [u8; 64] = [0; 64];
 
 static mut ROOK_MOVEMASK: [Vec<u64>; 64] = [Vec::new(); 64];
 static mut BISHOP_MOVEMASK: [Vec<u64>; 64] = [Vec::new(); 64];
-
-/*
-    Psudo Code for generating the moves
-    fn rook_move(sq: u64) -> u64 {
-        let full_board = get_all(pos);
-        let premask = ROOK_PREMASKS[sq];
-        let magix = ROOK_MAGIC[sq];
-        let shift = ROOK_SHIFT[sq];
-        let index = ((full_board & premask) * magic) >> shift;
-        return attack_bb[index];
-    }
-*/

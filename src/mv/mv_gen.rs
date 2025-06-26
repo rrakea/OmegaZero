@@ -82,7 +82,7 @@ fn queen(p: &Pos) -> Vec<u16> {
     let squares = bboard::get(bb);
     let mut mv = Vec::new();
     for sq in squares {
-        let movemask = magic::queen_mask(sq, p.active);
+        let movemask = magic::queen_mask(sq, p);
         mv.append(&mut mv_from_movemask(p, movemask, sq));
     }
     mv
@@ -93,7 +93,7 @@ fn rook(p: &Pos) -> Vec<u16> {
     let squares = bboard::get(bb);
     let mut mv = Vec::new();
     for sq in squares {
-        let movemask = magic::rook_mask(sq, p.active);
+        let movemask = magic::rook_mask(sq, p);
         mv.append(&mut mv_from_movemask(p, movemask, sq));
     }
     mv
@@ -104,7 +104,7 @@ fn bishop(p: &Pos) -> Vec<u16> {
     let squares = bboard::get(bb);
     let mut mv = Vec::new();
     for sq in squares {
-        let movemask = magic::bishop_mask(sq, p.active);
+            let movemask = magic::bishop_mask(sq, p);
         mv.append(&mut mv_from_movemask(p, movemask, sq));
     }
     mv

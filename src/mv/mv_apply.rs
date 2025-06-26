@@ -1,5 +1,6 @@
 use crate::mv::mv;
 use crate::pos::pos;
+use crate::pos::bboard;
 use crate::pos::pos::Pos;
 use crate::table::table;
 use crate::util;
@@ -196,8 +197,10 @@ pub fn apply(p: &Pos, mv: u16) -> Option<Pos> {
         }
     }
 
+    npos.full = bboard::bb_all(p);
     npos.data = pos::gen_data(ep_file, w_castle, b_castle);
     npos.key = key;
+
 
     if legal_pos(&npos) {
         return Some(npos);

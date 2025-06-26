@@ -8,6 +8,7 @@ pub fn run() {
     table::table::init_zobrist_keys();
     mv::constants::init_premasks();
     mv::constants::init_premasks();
+    mv::magic::init_magics();
 
     let mut pos = pos::pos::start_pos();
 

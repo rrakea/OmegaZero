@@ -33,6 +33,9 @@ pub struct Pos {
     pub bq: u64,
     pub bk: u64,
 
+    // Full board bitboard
+    pub full: u64
+    
     // Attack Tables
     pub wattack: u64,
     pub battack: u64,
